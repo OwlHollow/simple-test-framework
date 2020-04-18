@@ -40,7 +40,6 @@ public class SimpleCalc {
                 }
             }
         } catch (NumberFormatException ex){
-            ex.printStackTrace();
             return null;
         }
 

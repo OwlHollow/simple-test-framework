@@ -1,6 +1,8 @@
 package ru.liga.reflection.simpletestframework.utils;
 
 import com.sun.javafx.scene.control.skin.VirtualFlow;
+import ru.liga.reflection.simpletestframework.annotations.Test;
+import ru.liga.reflection.simpletestframework.exceptions.TestException;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -63,7 +65,7 @@ public class ReflectionHelper {
         }
     }
 
-    public static Object callMethod(Object object, String name, Object... args) {
+    public static Object callMethod(Object object, String name, Object... args) throws TestException{
         Method method = null;
         boolean isAccessible = true;
         try {

@@ -1,11 +1,15 @@
 package ru.liga.reflection.simpletestframework;
 
 import org.reflections.Reflections;
+import org.reflections.scanners.ResourcesScanner;
+import org.reflections.scanners.SubTypesScanner;
+import org.reflections.scanners.TypeElementsScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import ru.liga.reflection.simpletestframework.annotations.AfterTest;
 import ru.liga.reflection.simpletestframework.annotations.BeforeTest;
 import ru.liga.reflection.simpletestframework.annotations.Test;
+import ru.liga.reflection.simpletestframework.exceptions.TestException;
 import ru.liga.reflection.simpletestframework.utils.ReflectionHelper;
 
 import java.lang.reflect.Method;
@@ -14,55 +18,59 @@ import java.util.List;
 import java.util.Set;
 
 public class Tester {
-    private Reflections reflections;
+    private Set<Class<? extends Object>> classes;
 
-    private List<Method> startUpMethods;
-    private List<Method> testMethods;
-    private List<Method> afterTestMethods;
-
-    private Set<Class<? extends Object>>  classes;
-
-    private String testRootPackage;
-    private boolean success;
-
-
-    public Tester(String testRootPackage){
-        this.testRootPackage = testRootPackage;
-        init();
+    public Tester(String testRootPackage) {
+        init(testRootPackage);
     }
 
-    public int getTestCount(){
-        return testMethods.size();
-    }
+    /**
+     * Метод запускающий тесты; Если хотя бы один тест упадёт (выбросит TestException) - программа завершается;
+     */
+    public void test() {
+        Method currentMethod = null;
+        boolean success = true;
 
-    public boolean test(){
-        success = true;
-
-        for(Class c: classes){
+        for (Class c : classes) {
             Object testClassInstance = ReflectionHelper.instantiate(c);
 
-            startUpMethods = ReflectionHelper.findAnnotatedMethods(c, BeforeTest.class);
-            testMethods = ReflectionHelper.findAnnotatedMethods(c, Test.class);
-            afterTestMethods = ReflectionHelper.findAnnotatedMethods(c, AfterTest.class);
+            System.out.println("*** Run " + c.getName() + " tests ***");
 
-            for(Method m: startUpMethods){
-                ReflectionHelper.callMethod(testClassInstance, m.getName());
-            }
+            List<Method> startUpMethods = ReflectionHelper.findAnnotatedMethods(c, BeforeTest.class);
+            List<Method> testMethods = ReflectionHelper.findAnnotatedMethods(c, Test.class);
+            List<Method> afterTestMethods = ReflectionHelper.findAnnotatedMethods(c, AfterTest.class);
 
-            for(Method m: testMethods){
-                ReflectionHelper.callMethod(testClassInstance, m.getName());
-            }
+            try {
+                for (Method m : startUpMethods) {
+                    currentMethod = m;
+                    ReflectionHelper.callMethod(testClassInstance, m.getName());
+                }
 
-            for(Method m: afterTestMethods){
-                ReflectionHelper.callMethod(testClassInstance, m.getName());
+                for (Method m : testMethods) {
+                    currentMethod = m;
+                    System.out.print("Running " + m.getName() + " test: ");
+                    ReflectionHelper.callMethod(testClassInstance, m.getName());
+                    System.out.println("Ok");
+                }
+
+                for (Method m : afterTestMethods) {
+                    currentMethod = m;
+                    ReflectionHelper.callMethod(testClassInstance, m.getName());
+                }
+            } catch (TestException ex) {
+                ex.printStackTrace();
+                System.out.println("*** Test failed ***");
+                System.out.println("Failed while execute " + currentMethod.getName() + " in class " + c.getName());
+                System.exit(-1);
             }
         }
 
-        return true;
+        System.out.println("*** All tests passed ***");
+        System.out.println();
     }
 
-    private void init(){
-        Reflections reflections =  new Reflections(testRootPackage);
+    private void init(String testRootPackage) {
+        Reflections reflections = new Reflections(testRootPackage, new SubTypesScanner(false));
         classes = reflections.getSubTypesOf(Object.class);
     }
 }
