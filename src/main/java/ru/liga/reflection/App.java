@@ -12,5 +12,7 @@ public class App
     {
         Tester tester = new Tester("ru.liga.reflection.tests");
         tester.test();
+
+        System.out.println("Main program starts");
     }
 }

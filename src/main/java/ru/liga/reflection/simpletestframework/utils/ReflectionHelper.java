@@ -65,7 +65,7 @@ public class ReflectionHelper {
         }
     }
 
-    public static Object callMethod(Object object, String name, Object... args) throws TestException{
+    public static Object callMethod(Object object, String name, Object... args) throws TestException, InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         Method method = null;
         boolean isAccessible = true;
         try {
@@ -73,14 +73,11 @@ public class ReflectionHelper {
             isAccessible = method.isAccessible();
             method.setAccessible(true);
             return method.invoke(object, args);
-        } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-            e.printStackTrace();
         } finally {
             if (method != null && !isAccessible) {
                 method.setAccessible(false);
             }
         }
-        return null;
     }
 
     public static Method findAnnotatedMethod(Class<?> testClass, Class annotate) {

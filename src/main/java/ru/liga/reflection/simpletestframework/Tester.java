@@ -1,19 +1,15 @@
 package ru.liga.reflection.simpletestframework;
 
 import org.reflections.Reflections;
-import org.reflections.scanners.ResourcesScanner;
 import org.reflections.scanners.SubTypesScanner;
-import org.reflections.scanners.TypeElementsScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
 import ru.liga.reflection.simpletestframework.annotations.AfterTest;
 import ru.liga.reflection.simpletestframework.annotations.BeforeTest;
 import ru.liga.reflection.simpletestframework.annotations.Test;
 import ru.liga.reflection.simpletestframework.exceptions.TestException;
 import ru.liga.reflection.simpletestframework.utils.ReflectionHelper;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.sql.Ref;
 import java.util.List;
 import java.util.Set;
 
@@ -29,7 +25,6 @@ public class Tester {
      */
     public void test() {
         Method currentMethod = null;
-        boolean success = true;
 
         for (Class c : classes) {
             Object testClassInstance = ReflectionHelper.instantiate(c);
@@ -42,7 +37,6 @@ public class Tester {
 
             try {
                 for (Method m : startUpMethods) {
-                    currentMethod = m;
                     ReflectionHelper.callMethod(testClassInstance, m.getName());
                 }
 
@@ -54,14 +48,17 @@ public class Tester {
                 }
 
                 for (Method m : afterTestMethods) {
-                    currentMethod = m;
                     ReflectionHelper.callMethod(testClassInstance, m.getName());
                 }
-            } catch (TestException ex) {
-                ex.printStackTrace();
-                System.out.println("*** Test failed ***");
-                System.out.println("Failed while execute " + currentMethod.getName() + " in class " + c.getName());
-                System.exit(-1);
+            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                Throwable t =  e.getCause();
+                if(t instanceof TestException){
+                    System.out.println("Failed");
+                    System.out.println("Failed while execute " + currentMethod.getName() + " in class " + c.getName());
+                    e.printStackTrace();
+                    System.exit(-1);
+                }
+                e.printStackTrace();
             }
         }
 

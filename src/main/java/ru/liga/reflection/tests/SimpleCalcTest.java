@@ -1,5 +1,6 @@
 package ru.liga.reflection.tests;
 
+import com.sun.xml.internal.ws.policy.AssertionSet;
 import ru.liga.reflection.domain.SimpleCalc;
 import ru.liga.reflection.simpletestframework.annotations.AfterTest;
 import ru.liga.reflection.simpletestframework.annotations.BeforeTest;
@@ -22,20 +23,28 @@ public class SimpleCalcTest {
 
     @Test
     public void whenCalculateValidStrings(){
-        Assertion.assertEquals(simpleCalc.calculate("2 + 2"), 4);
-        Assertion.assertEquals(simpleCalc.calculate("      2 + 2    - 2  + 1    "), 1);
+        Assertion.assertEquals(simpleCalc.calculate("2+2"), 4);
+        Assertion.assertEquals(simpleCalc.calculate("2+2-2+1"), 3);
+        Assertion.assertEquals(simpleCalc.calculate("2+2+1+10-15"), 0);
+    }
+
+    @Test
+    public void whenEqualsFailed(){
+        Assertion.assertEquals(simpleCalc.calculate("2 - 2"), 2);
+    }
+
+    @Test
+    public void whenCalculateValidStringsWithSpaces(){
+        Assertion.assertEquals(simpleCalc.calculate("  2 +   2  "), 4);
+        Assertion.assertEquals(simpleCalc.calculate("      2 + 2    - 2  + 1    "), 3);
         Assertion.assertEquals(simpleCalc.calculate("2 + 2 + 1  + 10 - 15"), 0);
     }
 
     @Test
-    public void whenCalculateInvalidStrings(){
-        Assertion.assertNull(simpleCalc.calculate("2 * 2"));
-        Assertion.assertNull(simpleCalc.calculate("2 + 2 - 1 * 3 + 10"));
+    public void whenResultNegative(){
+        Assertion.assertEquals(simpleCalc.calculate("2 - 2"), 0);
+        Assertion.assertEquals(simpleCalc.calculate("      2 - 2    - 2  + 1    "), -1);
+        Assertion.assertEquals(simpleCalc.calculate("2 + 2 + 1  - 10 - 15"), -20);
     }
 
-    @Test
-    public void whenTestFailed(){
-        Assertion.assertEquals(simpleCalc.calculate("Exception"), 0);
-        Assertion.assertEquals(simpleCalc.calculate("2 + 2"), 1);
-    }
 }

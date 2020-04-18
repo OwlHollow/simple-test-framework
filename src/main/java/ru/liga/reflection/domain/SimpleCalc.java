@@ -9,8 +9,8 @@ public class SimpleCalc {
      * @param expression Строка с числами и операциями сложения и вычитания;
      * @return Результат выражения.
      */
-    public Double calculate(String expression){
-        double result = 0.d;
+    public Integer calculate(String expression){
+        int result = 0;
 
         //appending string while parsing digits
         StringBuilder strValue = new StringBuilder();
@@ -40,7 +40,7 @@ public class SimpleCalc {
                 }
             }
         } catch (NumberFormatException ex){
-            return null;
+            ex.printStackTrace();
         }
 
         //add last digit
